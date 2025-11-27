@@ -1,0 +1,316 @@
+---
+title: "Patient Hospital Experience Analysis"
+author: "Weston Nyabeze"
+format: html
+editor: visual
+---
+
+## Geographic Variation and Drivers of Hospital Patient Satisfaction: A Comprehensive Analysis of HCAHPS Survey Data Across US Hospitals (2023–2024)
+
+**Data Importation**
+
+Load HCAHPS survey data from CSV.
+
+```{r Import Data}
+Hospital_survey <- read.csv("HCAHPS-Inpatient _Hospital _Survey.csv")
+```
+
+Inspect data structure and column names.
+
+```{r}
+str(Hospital_survey)
+```
+
+**Data Preparation**
+
+Select relevant columns for analysis.
+
+```{r Subsetting}
+library(dplyr)
+patient_survey <- Hospital_survey %>% 
+  select(Facility.Name, City.Town,State, County.Parish,HCAHPS.Measure.ID, Patient.Survey.Star.Rating, HCAHPS.Answer.Percent
+,Number.of.Completed.Surveys,Survey.Response.Rate.Percent )
+```
+
+Convert character variables to numeric and replace "Not Applicable" with NA.
+
+```{r Changing data types}
+patient_survey <- patient_survey %>% 
+ mutate(
+    Patient.Survey.Star.Rating = as.numeric(replace(Patient.Survey.Star.Rating, Patient.Survey.Star.Rating == "Not Applicable", NA)),
+    HCAHPS.Answer.Percent = as.numeric(replace(HCAHPS.Answer.Percent, HCAHPS.Answer.Percent== "Not Applicable", NA)),
+    Number.of.Completed.Surveys = as.integer(replace(Number.of.Completed.Surveys, Number.of.Completed.Surveys == "Not Applicable", NA)),
+    Survey.Response.Rate.Percent = as.numeric(replace(Survey.Response.Rate.Percent, Survey.Response.Rate.Percent == "Not Applicable", NA))
+  )
+```
+
+Identify missing values in each column.
+
+```{r Finding Number of missing values from each columns}
+variables <- c(
+  "Facility.Name",
+  "City.Town",
+  "State",
+  "County.Parish",
+  "HCAHPS.Measure.ID",
+  "Patient.Survey.Star.Rating",
+  "HCAHPS.Answer.Percent",
+  "Number.of.Completed.Surveys",
+  "Survey.Response.Rate.Percent"
+)
+
+for (i in variables) {
+  print(paste(i, ": ", sum(is.na(patient_survey[[i]])), "missing values"))
+}
+```
+
+**Descriptive Statistics**
+Calculate national-level summary statistics for key metrics.
+
+```{r National Summary Statistics}
+
+numerical_vars <- c("Patient.Survey.Star.Rating", "HCAHPS.Answer.Percent", "Survey.Response.Rate.Percent")
+
+for (i in numerical_vars) {
+  values <- patient_survey[[i]][!is.na(patient_survey[[i]])]
+  print(paste("Summary for", i, "at National level is:"))
+  print(summary(values))
+}
+```
+
+Calculate state-level summary statistics.
+
+```{r}
+library(dplyr)
+
+state_stats <- patient_survey %>%
+  group_by(State) %>%
+  summarize(
+    mean_star    = mean(Patient.Survey.Star.Rating, na.rm = TRUE),
+    median_star  = median(Patient.Survey.Star.Rating, na.rm = TRUE),
+    sd_star      = sd(Patient.Survey.Star.Rating, na.rm = TRUE),
+    min_star     = min(Patient.Survey.Star.Rating, na.rm = TRUE),
+    max_star     = max(Patient.Survey.Star.Rating, na.rm = TRUE),
+    mean_answer  = mean(HCAHPS.Answer.Percent, na.rm = TRUE),
+    median_answer= median(HCAHPS.Answer.Percent, na.rm = TRUE),
+    sd_answer    = sd(HCAHPS.Answer.Percent, na.rm = TRUE),
+    min_answer   = min(HCAHPS.Answer.Percent, na.rm = TRUE),
+    max_answer   = max(HCAHPS.Answer.Percent, na.rm = TRUE)
+  ) %>%
+  mutate(
+    Flag = ifelse(
+      is.na(mean_star) | is.infinite(min_star) | is.infinite(max_star) |
+      is.na(mean_answer) | is.infinite(min_answer) | is.infinite(max_answer),
+      "Flag",
+      "OK"
+    )
+  )
+```
+
+**Geographic Visualization**
+Create interactive choropleth map of mean star ratings by state.
+
+```{r Inspecting the flagged states summary statestics}
+state_stats %>% filter(Flag == "Flag")
+```
+
+```{r}
+library(plotly)
+
+state_stats$full_name <- state.name[match(state_stats$State, state.abb)]
+
+plot_ly(state_stats, type='choropleth', 
+  locations=~State, locationmode='USA-states',
+  z=~mean_star, colors=rainbow(5, start=0, end=.8), zmin=1, zmax=5,
+  colorbar=list(title="Mean Star Rating"),
+  text=~paste(full_name, "<br>Mean Star Rating:", round(mean_star,2)),
+  hoverinfo="text"
+) %>%
+layout(
+  title=list(text="Mean Patient Survey Star Rating by State", x=0.5, xanchor='center'),
+  geo=list(scope='usa', projection=list(type='albers usa'), center=list(lat=38, lon=-97)),
+  margin=list(l=30, r=30, t=80, b=100),
+  annotations=list(list(
+    text="Note: US territories (AS, GU, MP) are not shown due to missing data.",
+    x=0.5, y=-0.08, showarrow=FALSE, xref="paper", yref="paper",
+    font=list(size=14, color="gray")
+  ))
+)
+```
+
+**Domain Analysis**
+
+Prepare facility-level metrics and domain-specific data for correlation analysis.
+
+```{r}
+library(dplyr)
+
+facility_metrics <- patient_survey %>%
+  group_by(Facility.Name, State) %>%
+  summarise(
+    Mean.Response.Rate = mean(Survey.Response.Rate.Percent, na.rm = TRUE),
+    Number.of.Completed.Surveys = sum(Number.of.Completed.Surveys, na.rm = TRUE),
+    .groups = "drop"
+  )
+facility_metrics
+```
+
+Extract domain-specific HCAHPS measures (excludes linear scores and star ratings).
+
+```{r}
+domain_analysis <- patient_survey %>%
+  filter(
+    !is.na(HCAHPS.Answer.Percent),
+    !grepl("LINEAR_SCORE|STAR_RATING", HCAHPS.Measure.ID)
+  ) %>%
+  group_by(Facility.Name, State, HCAHPS.Measure.ID) %>%
+  summarise(
+    Domain.Mean.Answer.Percent = mean(HCAHPS.Answer.Percent, na.rm = TRUE),
+    .groups = 'drop'
+  )
+```
+
+Transform domain data from long to wide format.
+
+```{r}
+library(tidyr)
+domain_analysis_wide <- domain_analysis %>%
+  pivot_wider(
+    names_from = HCAHPS.Measure.ID,
+    values_from = Domain.Mean.Answer.Percent
+  )
+```
+
+Merge domain data with facility metrics.
+
+```{r}
+analysis_dataset <- domain_analysis_wide %>%
+  left_join(facility_metrics, by = c("Facility.Name", "State"))
+```
+
+**Correlation Analysis**
+Define key HCAHPS measure domains for correlation and regression analysis.
+
+```{r Defining key Questions}
+key_questions <- c(
+  "H_COMP_1_A_P",
+  "H_COMP_2_A_P",
+  "H_NURSE_RESPECT_A_P",
+  "H_DOCTOR_RESPECT_A_P",
+  "H_CALL_BUTTON_A_P",
+  "H_BATH_HELP_A_P",
+  "H_COMP_5_A_P",
+  "H_MED_FOR_A_P",
+  "H_CLEAN_HSP_A_P",
+  "H_QUIET_HSP_A_P",
+  "H_DISCH_HELP_Y_P",
+  "H_RECMND_DY",
+  "Mean.Response.Rate",
+  "Number.of.Completed.Surveys"
+)
+```
+
+Filter to complete cases for included domains.
+
+```{r}
+# Now this works as intended, since the variables exist
+analysis_dataset <- analysis_dataset %>%
+  filter(if_all(all_of(key_questions), ~ !is.na(.))
+         )
+```
+
+Calculate correlation matrix among all domains.
+
+```{r}
+cor_matrix <- cor(analysis_dataset[key_questions], use = "pairwise.complete.obs")
+cor_matrix
+```
+
+Visualize correlations as heatmap.
+
+```{r}
+# Install if needed: install.packages("plotly")
+library(plotly)
+
+# Create interactive heatmap
+plot_ly(
+  z = cor_matrix,
+  x = colnames(cor_matrix),
+  y = rownames(cor_matrix),
+  type = "heatmap",
+  colorscale = "RdBu",
+  reversescale = TRUE,
+  colorbar = list(title = "Correlation"),
+  text = round(cor_matrix, 2),
+  texttemplate = "%{text}",
+  textfont = list(size = 8),
+  hovertemplate = "%{y} vs %{x}<br>Correlation: %{z:.3f}<extra></extra>"
+) %>%
+  layout(
+    title = "Correlation Heatmap: Patient Experience Domains",
+    xaxis = list(side = "bottom", tickangle = 45),
+    yaxis = list(tickfont = list(size = 9)),
+    width = 1000,
+    height = 900,
+    margin = list(l = 150, r = 100, t = 100, b = 150)
+  )
+```
+
+**Multiple Regression Analysis**
+
+Fit multiple linear regression predicting hospital recommendation rate. Set DC as reference state
+
+```{r}
+library(stargazer)
+
+# Set DC as the reference category for State
+analysis_dataset$State <- relevel(factor(analysis_dataset$State), ref = "DC")
+
+
+model_patient_recommend <- lm(
+  H_RECMND_DY ~ . + State,
+  data = analysis_dataset[, c(key_questions, "State", "H_RECMND_DY")]
+)
+
+# Display the regression table with APA-like formatting
+stargazer(model_patient_recommend, type = "text", title = "Linear Regression Predicting 'Definitely Recommend' Rate")
+```
+
+**Regression Diagnostics**
+
+Examine residual plots to verify model assumptions.
+
+```{r Regression Diagnostics}
+# Basic residual plots
+par(mfrow=c(2,2))
+plot(model_patient_recommend)
+```
+
+**Model Comparison**
+
+Fit regression model without state fixed effects for comparison.
+
+Compare model fit (R²) with and without state adjustment.
+
+```{r}
+# New model without the State variable
+model_patient_recommend_nostate <- lm(
+  H_RECMND_DY ~ .,
+  data = analysis_dataset[, c(key_questions, "H_RECMND_DY")]
+)
+
+summary(model_patient_recommend_nostate)
+```
+
+**Cluster-Robust Standard Errors**
+
+Estimate cluster-robust standard errors at state level to account for hospital clustering within states.
+
+```{r Cluster-Robust Standard Errors }
+library(lmtest)
+library(sandwich)
+
+clustered_se <- vcovCL(model_patient_recommend, cluster = analysis_dataset$State)
+coeftest(model_patient_recommend, vcov = clustered_se)
+
+```
