@@ -114,7 +114,7 @@ Strong correlations (r = 0.75–0.96) were found among core patient experience d
 | Staff Communication & Discharge Info | 0.65 |
 
 <!-- Add your correlation heatmap here -->
-![Correlation Heatmap]([figures/YOUR_HEATMAP_IMAGE.png](https://github.com/weston-nyabeze/Hospital-Patient-Satisfaction/blob/main/patient_experience_correlations.png))
+![Correlation Heatmap](https://github.com/weston-nyabeze/Hospital-Patient-Satisfaction/blob/main/patient_experience_correlations.png))
 
 ---
 
