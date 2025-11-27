@@ -202,5 +202,6 @@ This project is for educational and research purposes.
 
 ## Acknowledgments
 
-- Centers for Medicare & Medicaid Services (CMS) for providing the HCAHPS dataset
-- American University for academic support
+- **Centers for Medicare & Medicaid Services (CMS)** for providing the HCAHPS dataset
+- **American University** for academic support
+- **Perplexity AI** for research assistance, code development, and analytical guidance
