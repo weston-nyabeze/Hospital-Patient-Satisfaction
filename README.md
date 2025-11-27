@@ -98,7 +98,7 @@ This project analyzes the Hospital Consumer Assessment of Healthcare Providers a
 ### Geographic Distribution
 
 <!-- Add your choropleth map image here -->
-![Mean Patient Survey Star Rating by State](figures/YOUR_MAP_IMAGE.png)
+![Mean Patient Survey Star Rating by State](https://github.com/weston-nyabeze/Hospital-Patient-Satisfaction/blob/main/USA%20Choropleth%20map.png)
 
 ---
 
