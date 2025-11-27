@@ -184,7 +184,7 @@ Strong correlations (r = 0.75–0.96) were found among core patient experience d
 ## Full Report
 
 For the complete analysis with all code and visualizations, see the rendered report:
-- [HCAHPS_Patient_Satisfaction_Analysis_2024]([Portfolio-1.html](https://github.com/weston-nyabeze/Hospital-Patient-Satisfaction/blob/main/HCAHPS_Patient_Satisfaction_Analysis_2024..pdf))
+[HCAHPS_Patient_Satisfaction_Analysis_2024]([Portfolio-1.html](https://github.com/weston-nyabeze/Hospital-Patient-Satisfaction/blob/main/HCAHPS_Patient_Satisfaction_Analysis_2024..pdf))
 
 ---
 
