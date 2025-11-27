@@ -97,7 +97,6 @@ This project analyzes the Hospital Consumer Assessment of Healthcare Providers a
 
 ### Geographic Distribution
 
-<!-- Add your choropleth map image here -->
 ![Mean Patient Survey Star Rating by State](https://github.com/weston-nyabeze/Hospital-Patient-Satisfaction/blob/main/USA%20Choropleth%20map.png)
 
 ---
@@ -113,7 +112,6 @@ Strong correlations (r = 0.75–0.96) were found among core patient experience d
 | Call Button & Bath Help | 0.88 |
 | Staff Communication & Discharge Info | 0.65 |
 
-<!-- Add your correlation heatmap here -->
 ![Correlation Heatmap](https://github.com/weston-nyabeze/Hospital-Patient-Satisfaction/blob/main/patient_experience_correlations.png))
 
 ---
@@ -142,8 +140,7 @@ Strong correlations (r = 0.75–0.96) were found among core patient experience d
 
 ### Regression Diagnostics
 
-<!-- Add your diagnostic plots here -->
-![Regression Diagnostic Plots](figures/YOUR_DIAGNOSTICS_IMAGE.png)
+![Regression Diagnostic Plots](https://github.com/weston-nyabeze/Hospital-Patient-Satisfaction/blob/main/regression_diagnostics.png)
 
 ---
 
