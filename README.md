@@ -99,7 +99,7 @@ This project analyzes the Hospital Consumer Assessment of Healthcare Providers a
 
 ![Mean Patient Survey Star Rating by State]()
 
-![Mean Patient Survey Star Rating by State]()
+![Mean Patient Survey Star Rating by State](https://github.com/weston-nyabeze/Hospital-Patient-Satisfaction/blob/main/USA%20Choropleth%20map.png)
 
 ---
 
