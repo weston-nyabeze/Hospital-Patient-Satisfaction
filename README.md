@@ -192,11 +192,15 @@ For the complete analysis with all code and visualizations, see the rendered rep
 
 **Weston Nyabeze**
 
+- 🎓 Education: American University
+- 💼 Specialization: Healthcare Analytics
+- 🔗 LinkedIn: [www.linkedin.com/in/weston-nyabeze](https://www.linkedin.com/in/weston-nyabeze)
+  
 ---
 
 ## License
 
-This project is for educational and research purposes.
+This project is licensed under the **MIT License**. See the [`LICENSE`](LICENSE) file for details.
 
 ---
 
